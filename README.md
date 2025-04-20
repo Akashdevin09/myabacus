@@ -3,4 +3,4 @@ A web-based calculator built with HTML, CSS, and JavaScript. It supports basic a
 
 look Alike
 
-https://github.com/Akashdevin09/myabacus/blob/d9fce09ece19f39aafcc47bffa5c57ef04a8fc8a/myabacus.png
+![image alt](https://github.com/Akashdevin09/myabacus/blob/d9fce09ece19f39aafcc47bffa5c57ef04a8fc8a/myabacus.png)
