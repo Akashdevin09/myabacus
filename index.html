@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Calculator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      background-color: lightblue;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 30px;
+      padding: 40px;
+      margin: 0;
+      transition: background-color 0.3s;
+    }
+
+    #calculator, #history, #extras {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border: 1px solid #ddd;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    #display {
+      width: 100%;
+      height: 40px;
+      background-color: #f0f0f0;
+      margin-bottom: 10px;
+      padding: 5px;
+      text-align: right;
+      font-size: 18px;
+      overflow-x: auto;
+      border: 1px solid #ddd;
+      transition: background-color 0.3s;
+    }
+
+    button {
+      width: 60px;
+      height: 60px;
+      font-size: 20px;
+      margin: 5px;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #f0f0f0;
+    }
+
+    button:active {
+      background-color: #d0d0d0;
+    }
+
+    .trig-btn {
+      font-size: 16px;
+    }
+
+    #history h3, #extras h3 {
+      text-align: center;
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    #history ul {
+      list-style: none;
+      padding-left: 0;
+      font-size: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    #history li {
+      margin-bottom: 8px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+
+    #controls {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    /* Dark Mode Styles */
+    .dark-mode {
+      background-color: #222;
+    }
+
+    .dark-mode #calculator,
+    .dark-mode #history,
+    .dark-mode #extras {
+      background-color: #333;
+      color: #fff;
+      border: 1px solid #555;
+    }
+
+    .dark-mode #display {
+      background-color: #444;
+      color: #fff;
+    }
+
+    .dark-mode button {
+      background-color: #555;
+      color: #fff;
+    }
+
+    .dark-mode button:hover {
+      background-color: #666;
+    }
+
+    .dark-mode button:active {
+      background-color: #444;
+    }
+
+    .dark-mode #history li {
+      border-bottom: 1px solid #666;
+    }
+
+    /* Signature in bottom-left */
+    #signature {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 14px;
+      color: #333;
+      font-weight: bold;
+      opacity: 0.7;
+      z-index: 9999;
+    }
+
+    .dark-mode #signature {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<div id="calculator">
+  <h2 style="text-align: center; margin-top: 0;">My Abacus😊</h2>
+  <div id="display">0</div>
+  <button onclick="appendNumber('7')">7</button>
+  <button onclick="appendNumber('8')">8</button>
+  <button onclick="appendNumber('9')">9</button>
+  <button onclick="appendOperator('/')">/</button>
+  <button onclick="appendNumber('4')">4</button>
+  <button onclick="appendNumber('5')">5</button>
+  <button onclick="appendNumber('6')">6</button>
+  <button onclick="appendOperator('*')">*</button>
+  <button onclick="appendNumber('1')">1</button>
+  <button onclick="appendNumber('2')">2</button>
+  <button onclick="appendNumber('3')">3</button>
+  <button onclick="appendOperator('-')">-</button>
+  <button onclick="appendNumber('0')">0</button>
+  <button onclick="appendDecimal()">.</button>
+  <button onclick="appendOperator('+')">+</button>
+  <button onclick="appendOperator('^')">^</button>
+  <button onclick="calculate()">=</button>
+  <button onclick="clearDisplay()">C</button>
+  <button class="trig-btn" onclick="appendFunction('sin')">sin</button>
+  <button class="trig-btn" onclick="appendFunction('cos')">cos</button>
+  <button class="trig-btn" onclick="appendFunction('tan')">tan</button>
+  <button class="trig-btn" onclick="appendFunction('log')">log</button>
+  <button onclick="backspace()">⌫</button>
+</div>
+
+<div id="history">
+  <h3>History 🧾</h3>
+  <ul id="historyList"></ul>
+  <div id="controls">
+    <button onclick="clearHistory()">Clear</button>
+    <button onclick="exportHistory()">📩</button>
+    <button onclick="exportHistoryToPDF()">📄</button>
+    <button onclick="toggleDarkMode()">🌓</button>
+  </div>
+</div>
+
+<div id="extras">
+  <h3>Extras</h3>
+
+  <!-- Age Calculation -->
+  <h4>Age Calculator 🅰️</h4>
+  <input type="date" id="birthdate" />
+  <button onclick="calculateAge()">Cal Age</button>
+  <p id="ageResult"></p>
+
+  <!-- Speed Calculation -->
+  <h4>Speed Calculator🛞</h4>
+  <input type="number" id="distance" placeholder="Distance (m)" />
+  <input type="number" id="time" placeholder="Time (s)" />
+  <button onclick="calculateSpeed()">Cal Speed</button>
+  <p id="speedResult"></p>
+
+  <!-- Temperature Conversion -->
+  <h4>Temperature Converter 🌡️</h4>
+  <input type="number" id="tempInput" placeholder="Temperature" />
+  <select id="tempUnitFrom">
+    <option value="C">Celsius</option>
+    <option value="F">Fahrenheit</option>
+    <option value="K">Kelvin</option>
+  </select>
+  <select id="tempUnitTo">
+    <option value="C">Celsius</option>
+    <option value="F">Fahrenheit</option>
+    <option value="K">Kelvin</option>
+  </select>
+  <button onclick="convertTemperature()">Temp</button>
+  <p id="tempResult"></p>
+</div>
+
+<!-- Signature -->
+<div id="signature">Made❤️Akash Mishra</div>
+
+<script>
+  let display = document.getElementById('display');
+  let currentInput = '0';
+  let historyList = document.getElementById('historyList');
+
+  function appendNumber(number) {
+    if (currentInput === '0' || isNaN(parseFloat(currentInput))) {
+      currentInput = number;
+    } else {
+      currentInput += number;
+    }
+    display.textContent = currentInput;
+  }
+
+  function appendOperator(operator) {
+    currentInput += operator;
+    display.textContent = currentInput;
+  }
+
+  function appendDecimal() {
+    if (!currentInput.includes('.')) {
+      currentInput += '.';
+      display.textContent = currentInput;
+    }
+  }
+
+  function appendFunction(func) {
+    currentInput += func + '(';
+    display.textContent = currentInput;
+  }
+
+  function calculate() {
+    try {
+      const expression = currentInput;
+      currentInput = currentInput.replace(/\^/g, "**")
+        .replace(/sin\(/g, "Math.sin(")
+        .replace(/cos\(/g, "Math.cos(")
+        .replace(/tan\(/g, "Math.tan(")
+        .replace(/log\(/g, "Math.log10(");
+      const result = eval(currentInput);
+      display.textContent = result;
+      addToHistory(expression, result);
+      currentInput = String(result);
+    } catch (error) {
+      display.textContent = "Oops!";
+      currentInput = '0';
+    }
+  }
+
+  function addToHistory(expr, result) {
+    const entry = document.createElement("li");
+    entry.textContent = `${expr} = ${result}`;
+    historyList.prepend(entry);
+  }
+
+  function clearDisplay() {
+    currentInput = '0';
+    display.textContent = '0';
+  }
+
+  function clearHistory() {
+    historyList.innerHTML = '';
+  }
+
+  function exportHistory() {
+    let historyText = "";
+    const items = historyList.querySelectorAll("li");
+    items.forEach(item => {
+      historyText += item.textContent + "\n";
+    });
+
+    const blob = new Blob([historyText], { type: "text/plain" });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'calculator_history.txt';
+    link.click();
+  }
+
+  function exportHistoryToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("Calculator History", 10, 10);
+    const items = historyList.querySelectorAll("li");
+    let y = 20;
+    items.forEach(item => {
+      doc.text(item.textContent, 10, y);
+      y += 10;
+    });
+    doc.save("calculator_history.pdf");
+  }
+
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
+  }
+
+  function calculateAge() {
+    const birthdate = document.getElementById('birthdate').value;
+    const today = new Date();
+    const birth = new Date(birthdate);
+    const age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    document.getElementById('ageResult').textContent = `You are ${age} years old.`;
+  }
+
+  function calculateSpeed() {
+    const distance = parseFloat(document.getElementById('distance').value);
+    const time = parseFloat(document.getElementById('time').value);
+    if (!isNaN(distance) && !isNaN(time) && time !== 0) {
+      const speed = distance / time;
+      document.getElementById('speedResult').textContent = `Speed: ${speed.toFixed(2)} m/s`;
+    } else {
+      document.getElementById('speedResult').textContent = "Invalid input!";
+    }
+  }
+
+  function convertTemperature() {
+    const temp = parseFloat(document.getElementById('tempInput').value);
+    const from = document.getElementById('tempUnitFrom').value;
+    const to = document.getElementById('tempUnitTo').value;
+
+    let result;
+
+    if (from === 'C') {
+      result = to === 'F' ? (temp * 9 / 5) + 32 :
+               to === 'K' ? temp + 273.15 : temp;
+    } else if (from === 'F') {
+      result = to === 'C' ? (temp - 32) * 5 / 9 :
+               to === 'K' ? ((temp - 32) * 5 / 9) + 273.15 : temp;
+    } else if (from === 'K') {
+      result = to === 'C' ? temp - 273.15 :
+               to === 'F' ? ((temp - 273.15) * 9 / 5) + 32 : temp;
+    }
+
+    document.getElementById('tempResult').textContent = `Result: ${result.toFixed(2)} ${to}`;
+  }
+
+  function backspace() {
+    currentInput = currentInput.slice(0, -1) || '0';
+    display.textContent = currentInput;
+  }
+</script>
+
+</body>
+</html>
